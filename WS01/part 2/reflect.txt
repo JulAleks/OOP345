@@ -1,0 +1,91 @@
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                       OOP345 Workshop - #1 (PART Reflection)
+Student Name: Julia Alekseev
+Student ID#:  051292134
+Email      :  jalekseev@myseneca.ca
+Section    :  NFF
+Date:      :  Sep 15, 2023
+I have done all the coding by myself and only copied the code that my professor provided to complete my workshops and assignments.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+******************************
+Personal Reflection
+******************************
+
+The workshop was a real challenge in the beginning because I felt like the school break totally threw me off track, and I lost my focus on the stuff we'd learned before that break. So, when I first tackled the workshop, I basically had a basic approach, and that caused all sorts of problems when I tried to move on to part 2. But, after I went back and reviewed the materials from the previous semester, I was able to get back on track and finish the project without running into any major issues I couldn't handle.
+
+******************************
+Workshop Reflection
+******************************
+
+In the workshop, we learned how to code a program to receive command line arguments using the following code line: int main(int argc, char* argv[]). Here, argc represents the number of arguments passed to the system through the command line, while char* argv[] represents an array containing these arguments. Each argument occupies a position in the string array.
+
+We could pass arguments through the command line or through Visual Studio by adding them in project properties: Project > Debugging > Command Argument. In our workshop, the arguments were necessary to instruct the program on which files to load. Thus, it's essential to note that depending on how the project is set up, there might be linkage issues between those files and the software. Therefore, it's crucial to set up the project correctly or identify the correct location for the files to be located.
+
+In addition, I’ve taken steps to ensure the integrity of my classes by preventing the duplication of header files during compilation. This precautionary measure is essential to avoid potential linkage errors and guarantees that the project includes a specific header file only once.
+
+When we begin creating our header file, our first order is to check whether it's already been defined using #ifndef. If it's not defined yet, we proceed to define it using #define. Then, when we've completed our work with the header file, we tidy things up by using #endif.
+
+Moreover, these guards provide us with a nifty way to create small code blocks within our main program. We can easily toggle them on and off by uncommenting the #define lines: 
+//#define ex1
+//#define ex2
+#define ex3
+
+#ifdef ex1
+  // Code block for ex1
+  ....code....
+#endif
+
+#ifdef ex2
+  // Code block for ex2
+  ....code....
+#endif
+
+#ifdef ex3
+  // Code block for ex3
+  ....code....
+#endif
+
+Furthermore, during the workshop, we covered the concept of internal and external linkage. That concept describes variables or functions being accessible from multiple modules in the same project or limited to a specific scope they are declared at. 
+If we are looking to create a variable that can be accessed and modified from any module of our project, we need to declare it in a single header file or CPP file, outside of any specific namespace by using the keyword extern before it. For example, extern int numFruits. Additionally, it's important to define it at least once within the project.
+In the workshop, I've declared extern double g_taxrate and extern double g_discount in the header file, and then I defined them in the CPP file as double g_taxrate and double g_discount. These variables remain accessible throughout the project's lifetime, even though they weren't explicitly declared in the main function where they were initialized to different tax and discount values, depending on the conditions.
+For example:
+-RideRequest.h-
+extern double g_taxrate;
+extern double g_discount;
+
+-RideRequest.cpp-
+double g_taxrate;
+double g_discount;
+
+-w1_p2.cpp-
+……
+if (day == 1) {
+	g_taxrate = 0.13;
+	g_discount = 1.15;
+}
+else {
+	g_taxrate = 0.14;
+	g_discount = 1.20;
+}…..
+On the other hand, if we want to declare a local variable, that has an internal linkage, that persists in memory throughout the entire program's execution, we need to use the word 'static'. When we designate a variable as 'static' within a function or block of code, it retains its value between function calls and remains present throughout the entire program's execution.
+For example, I’ve declared and initialized a static int i = 0; variable, which is used throughout the module to count the number of riders. Despite the display function being called multiple times to represent riders from different files, this variable maintains its value across the program's execution.
+For example:
+void RideRequest::display() const
+{
+	static int i = 0; //counter
+….
+}
+
+The final outcome of the workshop was to take a string input of any length and manipulate it, reassigning it to a C-style null-terminated string. In contrast to part 1, which had a maximum input size and used a C-style null-terminated string to receive the input, there was a need to change 'char extraDetails[25]' to a pointer 'char *extraDetails' to accommodate strings of any size. Therefore, I created a temporary string variable, in my case, 't_detail,' to accept strings of any size.
+
+Instead of using 'is.getline(extraDetails, 25, ',')', I had to change it to 'getline(is, t_detail, ',')' to read a string of any length. Then, I used 't_detail.length() + 1' to determine the size of the new C-style null-terminated string that I needed to create for 'extraDetails.' Since 'extraDetails' is a string and not a regular character array, I needed to use '.c_str()' to copy it.
+
+For example:
+//using egtline to read the the name and the string ignoring the delimiter
+is.getline(t.custName, NSIZE, del);
+getline(is, t_detail, del);
+
+//creating a new dynamic extraDetails char based on the length of the sting and copying it
+t.extraDetails = new char[t_detail.length() + 1];
+strcpy(t.extraDetails, t_detail.c_str());

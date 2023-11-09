@@ -1,0 +1,72 @@
+/*/////////////////////////////////////////////////////////////////////////
+                       OOP345 Workshop - #6 (Reflection)
+Reflection
+File	Reflection.txt
+Student Name: Julia Alekseev
+Student ID# :  051292134
+Email       :  jalekseev@myseneca.ca
+Section     :  NFF
+Date        :  2023-11-04
+I have done all the coding by myself and only copied the code that my
+professor provided to complete my workshops and assignments.
+/////////////////////////////////////////////////////////////////////////*/
+
+During our workshop, we have covered the Standard Template Library (STL) and how to manage polymorphic objects. The STL library is a provides us the tools to use abstraction for code reusability, and it allows us to work with containers and iterators.
+
+Polymorphism is used to create objects that share the same interface while having different behaviors based on their specific needs. In our project, we introduced the Resource class as a virtual base class, providing a blueprint for essential virtual functions. Derived classes, such as File and Directory, inherit these functions but implement them differently. For instance, a File class may store content as a string, while a Directory class uses a vector of resource pointers to manage a collection of resources.
+
+class Directory : public Resource {
+        std::vector<Resource*> m_contents{nullptr};
+….}
+class File : public Resource {
+        std::string m_contents{}; 
+….
+}
+Moreover, we had to manage dynamically allocated objects by using the move operator to transfer ownership of objects into a dynamic vector without the need to explicitly manage the dynamic memory. This simplifies the process and ensures efficient resource handling. The move operator takes care of the dynamic memory management for us and avoid resource leaks. Example:
+  Filesystem& Filesystem::operator+=(Resource* src)
+    {
+       
+        m_current->operator+=(std::move(src));
+        return *this;
+    }
+
+In addition, we used range-based iteration to efficiently access the objects within a container. Range-based iterations gives us the ability to write shorter and readable code in comparison to traditional for, while, or do while loops when we want to iterate over container items. In my code, the loop the size() function, iterates through all the elements in the m_contents vector and sums up the sizes of the non-null elements to calculate the total size. 
+Example:
+size_t Directory::size() const
+    {
+        size_t tot = 0u;
+        if (!m_contents.empty()) { 
+            for (const auto res : m_contents) {
+                if (res != nullptr) {
+                    tot += res->size();
+                }
+           
+            }
+        }
+        return tot;
+    }
+
+Additionally, we have reported and handled exceptions. Exceptions offer a more elegant way to handle the code's execution rather than causing a system crash. They allow us to anticipate potential issues and code the system to throw an exception when a problem occurs, which we can then catch and handle.
+For instance, as part of the += operation in the Directory module, we want to prevent the creation of duplicate directories. Therefore, if we attempt to duplicate an existing directory, the code will throw an exception, informing us that a directory with the same name already exists.
+Example:
+if (found) {
+      
+   throw "**EXPECTED EXCEPTION:"+ src->name () + "image already exists in the root";
+      ….
+}  
+
+Furthermore, in the Directory module, we have a vector of Resource* pointers, where each pointer points to a dynamically allocated Resource object. To have a proper memory management and prevent memory leaks, we need to deallocate the memory associated with each dynamic resource by using the delete operator in the destructor.  After deallocating the resources, we also need to clear the vector to remove any remaining pointers. 
+std::vector<Resource*> m_contents{nullptr};
+  Directory::~Directory()
+    {
+        for (Resource* res : m_contents) {  //deleting all ptrs 
+            delete res;
+        }
+        m_contents.clear();  //clearing the vector
+    }
+We are using Resource* instead of Resource because we are dealing with polymorphic objects. By using pointers to the base class, we can store objects of derived classes in the same container and use their polymorphic behavior. This is important when managing resources like files and directories because their specific behaviors and resource management requirements are different. By passing resources by pointer, we grant the derived classes the ability to control the lifetime of the resources. If we were to pass resources by value, each resource would be copied, which may not be efficient and could limit their usability in other modules or with derived classes. Using pointers provides the flexibility required for effective resource management and allows different resource types to coexist in the same container while retaining their specific behaviors.
+
+As well, to call specific functions on Directory objects stored as Resource*, I used the arrow notation (->). This is necessary because Resource is a pointer type, and the arrow notation allows me to access and invoke functions on the object pointed to by the pointer. Whether the object is of the base class or a derived class, the arrow notation is used to access its functions and members when dealing with pointers.
+Example:
+temp = dir->find(str, src);
+…if (toDel->type() == NodeType::DIR) {…}

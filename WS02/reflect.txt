@@ -1,0 +1,93 @@
+/*/////////////////////////////////////////////////////////////////////////
+                       OOP345 Workshop - #2 (PART Reflection)
+Student Name: Julia Alekseev
+Student ID#:  051292134
+Email      :  jalekseev@myseneca.ca
+Section    :  NFF
+Date       :  Sep 23, 2023
+I have done all the coding by myself and only copied the code that my professor provided to complete my workshops and assignments.
+/////////////////////////////////////////////////////////////////////////*/
+
+Our recent workshop covered several important topics: move vs copy, uploading text files, and how to use the chrono library. 
+When it comes to reading text files, it's something we covered in the previous workshop, but this time, I approached it a bit differently. Instead of using a temporary object to read the file and then copying its contents to the current object using equal assignment, I used a different approach. I used readline to count the lines in a loop and then assigned the size of the airport pointer based on that count. After that, I rewound the file and reread it using getline and instream to assign the read values to the pointer array.
+string line;
+if (in.good()) {
+    while (in) {
+        //read the file to count the number of airports in the file (note the heading line in the file is not describing an actual airport so do not count that line)
+        getline(in, line); //ignoring first line
+        while (getline(in, line)) { numAir++; } //counting the number of airports
+    }
+    //allocate dynamic memory for the array of airports based on the number found
+    airports = new Airport[numAir];
+
+    //rewind the file
+    in.clear();
+    in.seekg(0, ios::beg);
+
+    //reread the file from the beginning to load the actual airport data into the array
+    while (in) {
+        char del = ',';
+        getline(in, line); //ignoring first line
+        for (auto i = 0u; i < numAir; ++i) {
+            getline(in, airports[i].a_code, del);
+            getline(in, airports[i].a_name, del);
+            getline(in, airports[i].a_city, del);
+            getline(in, airports[i].a_state, del);
+            getline(in, airports[i].a_country, del);
+            in >> airports[i].a_latitude;
+            in.ignore();
+            in >> airports[i].a_longitude;
+            in.ignore();
+        }
+    }
+}
+To answer whether it's possible to read the file without rewinding it and rereading it, I considered a few options. One idea was to start with a large temporary object and then resize it later. However, I didn't think this was the best approach. It could potentially use a lot of memory, and there's a chance of underestimating the size, ending up with more airports in the file than I had assumed would be enough.
+Another option was to use the addAirport function to be called with every iteration of the loop. But this wouldn't be the best choice either because, in each iteration, the program would have to resize the pointer, creating new pointers and using a lot of memory.
+So, I explored another option using a vector instead of a pointer array. With a vector, I could potentially store the lines in each loop iteration while counting the lines, without the need for using dynamic memory. This way, I wouldn't need to rewind the file, and it seems like a better use of memory resources.
+For example:
+if (in.good()) {
+while (in) {
+    Airport t_airport;
+    getline(in, t_airport.a_code, del);
+    getline(in, t_airport.a_name, del);
+    getline(in, t_airport.a_city, del);
+    getline(in, t_airport.a_state, del);
+    getline(in, t_airport.a_country, del);
+    in >> t_airport.a_latitude;
+    in.ignore();
+    in >> t_airport.a_longitude;
+    in.ignore();
+
+    airports.push_back(t_airport);
+    numAir++;
+}
+}
+The use of the Chrono library was interesting because it shows how much time the CPU and processor spend on specific tasks in our program. We used that feature to time how long each part of the workshops takes, calculating how much time spent from the start and end of the execution of that code block:
+void Timer::start()
+{
+    t_start = chrono::steady_clock::now();
+}
+
+long long Timer::stop()
+{
+    t_end = chrono::steady_clock::now();
+    chrono::nanoseconds elapsed_time = (t_end - t_start);
+    return elapsed_time.count();
+}
+Output: 
+Statistics
+-----------------------
+......Default Constructor: ......2200 nanoseconds.
+.......Custom Constructor: ...7262000 nanoseconds.
+.........Copy Constructor: ....584100 nanoseconds.
+.Copy Assignment Operator: ....594200 nanoseconds.
+.........Move Constructor: .......800 nanoseconds.
+.Move Assignment Operator: .......400 nanoseconds.
+...............Destructor: ....662700 nanoseconds.
+
+The significant difference between the copy and move operators is primarily due to the number of resources needed for each task.
+When we use the copy operation, we essentially duplicate the right-hand side object into the left-hand side object. This duplication involves the use of copy constructor and copy assignment operator, which allocate dynamic memory to store the data, leading to increased processing resource usage for memory management and data copying. It's a somewhat complex process that demands a significant number of resources.
+On the other hand, the move operation involves transferring ownership of resources from the right-hand object to the left-hand object, effectively moving its contents, and leaving the right-hand object in an emptied state. This process is much faster and requires fewer resources compared to copying because it doesn't involve duplicating data or extensive memory adjustments. It's very efficient as it avoids unnecessary data duplication and memory allocations. Therefore, the move operation is much faster than the copy one. 
+
+Regarding the different clocks of the chrono library, the main difference between steady_clock and system_clock is that a steady_clock is like a super reliable stopwatch. It's a steady and constant clock that measures time precisely and isn't affected by external factors like system time changes. It's great for calculating precise timings, like how long a program takes to run.
+On the other hand, system_clock is like the regular clock on the device. It tells the current time of day, but it can be influenced by things like adjusting the device's time or syncing with an online time server. It's useful for showing the current time or tracking when someone logs in or out of a system.

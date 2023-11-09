@@ -1,0 +1,128 @@
+/*/////////////////////////////////////////////////////////////////////////
+                       OOP345 Workshop - #4 (PART 2-Reflection)
+Cheese Shop Module
+File	CheeseShop.h
+Student Name: Julia Alekseev
+Student ID# :  051292134
+Email       :  jalekseev@myseneca.ca
+Section     :  NFF
+Date        :  Oct 07, 2023
+I have done all the coding by myself and only copied the code that my professor provided to complete my workshops and assignments.
+/////////////////////////////////////////////////////////////////////////*/
+
+This week's workshop covered the aggregation and composition relationships between classes. 
+Composition is like a strong bond between classes, where one class is in charge and controls the lifetime of another. One class creates, manages, and even destroys the other class when it's done. The instances of the controlled class can't exist independently without the controlling class as they're tightly connected.
+On the other hand, aggregation is a weaker relationship, where they're related, but one class doesn't have full control over the other's existence. In aggregation, class instances can exist independently. It is called a 'has-a' relationship type, where one class has instances of another class, but those instances aren't completely dependent on the first class for their existence.
+
+In the workshop we had a class called "Cheese" representing a single cheese item, and "CheeseShop" and "CheeseParty" representing different relationships with the Cheese items.
+
+"CheeseShop" represents a composition relationship with "Cheese" because it owns the lifetime of all cheese objects within it. Meaning, when the "CheeseShop" is destroyed, the cheese objects it contains are also destroyed since they are part of it.
+
+On the other hand, "CheeseParty" has a relationship with cheese but does not control the cheese's lifetime. "CheeseParty" can use and interact with the cheese objects, but if the "CheeseParty" is destroyed, it does not affect the existence of the cheese items.
+
+Understanding what each instance of a class represents is important when dealing with dynamic memory allocation and making constructors, the equal operator, and move operations.
+When we use the equal assignment operator in the case of CheeseShop we need to preform extra steps, as CheeseShop and Cheese have a composition relationship. We need to make sure that each ptr inside CheeseShop is properly managed. It is important to make sure that all memory for all the ptrs in each index of the whole CheeseShop's ptr array is deallocated. To do so we need to use a loop, loop through the array and delete those instances if they aren’t nullptr, before completing any other operation: 
+if (s_cheese != nullptr) {//clearing all ptr in the shop
+                for (auto i = 0u; i < s_num; ++i) {
+                    delete s_cheese[i];
+                    s_cheese[i] = nullptr;
+                }
+            }
+and then make sure to assign the main cheeseShop ptr to nullptr as well. I have created a setEmpty function to be used in several locations of the code representing that logic.
+  void CheeseShop::setEmpty() //set an empty cheese
+    {
+        delete[] s_cheese;
+        s_cheese = nullptr;
+    }
+Next we need to assign a new the rhs total number of cheeses to the left to be able to know the proper size to create a new instance of a Cheese ptr array 
+ s_num = rhs.s_num; //setting num lhs cheese to rhs 
+
+s_cheese = new const Cheese * [s_num]; //setting DMA loc to new cheese ptr a size of cheeseNum
+Now we can loop through the rhs ptr and deep copy the new cheeses to the rhs. We do not just copy them but we are creating a new ptr at each location representing the tight connection of Cheese and CheeseShop. 
+for (auto i = 0u; i < s_num; ++i) { //looping and calling copy construcor from cheese
+                if (rhs.s_cheese[i] != nullptr) {
+                    s_cheese[i] = new Cheese(*rhs.s_cheese[i]); //creating new cheeses, for the shop to own 
+                }
+            }
+On the other hand, with CheeseParty as it has an aggregation relationship, there is no need to nullptr each index. Just the whole dairyParty itself by using the custom made setEmpty function. 
+void CheeseParty::setEmpty()
+    {
+        delete[] dairyParty;
+        dairyParty = nullptr;
+    }
+Then we allocate the same way as in CheeseShop the memory of the dairyParty to a new Cheese size of the total cheeses and assign the total cheeses of the rhs to the lhs dairyParty = new const Cheese * [p_num];
+But when we loop to assign the rhs cheeses to the lhs, we do not create new instances as with CheesesShop in each index, but we do not deep copy them as the CheeseParty doesn’t own the Cheese, we just shallow copy them. 
+for (auto i = 0u; i < p_num; ++i) {
+                if (rhs.dairyParty[i] != nullptr) {
+                    dairyParty[i] = rhs.dairyParty[i]; //copying each cheese but not creating new cheese as the party doesnt own the cheese 
+                }
+            }
+
+When it comes to move constructors both Party and Shop use the same logic, of using the equal assignment to move the rhs object. 
+The difference come inside the logic of the move assignment between both. Similarly like with the equal assignment of the Shop we needed to make sure that all instances of the ptr in the shop are nullptr, we need to loop and delete and nullptr each index, followed by using setEmpty function. Then we can proceed to moving each member variable by using std::move from rhs to lhs and the clearing us rhs. 
+Move for Party, does not need to deallocate each index as explained above and can simply move the rhs to the lhs. 
+Another difference is the destructor type, that the CheeseShop has to delete each index and then nullptr the whole ptr container and the CheeseParty just the ptr container. 
+   CheeseParty::~CheeseParty()
+    {
+        setEmpty();
+    }
+
+CheeseShop::~CheeseShop()
+    {
+        for (auto i = 0u; i < s_num; ++i) { //needed here because the cheeses are owned by the shop
+            delete s_cheese[i];
+            s_cheese[i] = nullptr;
+        }     
+        setEmpty();
+    }
+
+********************************************
+
+When it comes to the add cheese functions in both modules there are several differences. 
+In both cases I used a temporary obj a size of +1 of the total cheeses and looped to assign the correct cheeses to the temp object. 
+The difference came when we needed to assign the rhs to the the temp object. 
+In the case of cheeseShop as it is a composition relationship, there was a need to assign a new Cheese. We need to create a new instance of the cheese. 
+  t_shop[s_num] = new Cheese(rhs); //assigning the value of rhs as the shop owns it
+But in the case of CheeseParty, we copy simply the address of the rhs cheese, as the CheeseParty does not own the lifetime of that Cheese.
+t_party[p_num] = &rhs;
+The rest of the logic is the same, setting the lhs main ptr container to a nullptr and assign the temp obj to the lhs. It will use the equal assignment logic and if needed will loop through the CheesShop array and nullptr each index before copying the temp obj to the current obj. 
+To add a delete function to CheeseShop we would need:
+1.	Create a counter and initialize to zero
+2.	Loop to count not empty cheeses, assign to the counter.
+3.	Create a temp obj the new size of the sum of not empty cheeses  
+4.	Loop again checking if it is not a zero, copy the rhs index value to the temp object at the index of the counter plus one.
+5.	When done, delete current cheeses
+6.	Assign temp to cheeses 
+7.	Assign the value of the total of cheese to the counter 
+8.	Return this
+As well to use it, we would need to use a loop to slice the all the instances of that cheese in a specific location.  Using an extra function that will return the total inventory of
+for (auto i = 0u; i < numCheese, ++i) {
+          cheeses[0][i].slice(200); 
+      }
+In the main we should keep track of how many cheeses we created for the instance of that obj to be able to loop through it as well.
+
+********************************************
+
+For the tokenizing function I used temp variables to store the tokenized information.
+I used the find function to locate the comma. 
+size_t comma1 = str.find(",");
+then going through the string if it isn’t a comma at the end position use the trimming function from the substring location zero to the comma loc. name = trimSpace(str.substr(0, comma1));
+
+The trimming function will find the first loc of not a space. 
+If the first space loc is not at the end of the string, if so find the last location of the space. 
+The return the substring of the string removing the location of the first space and the last minus first plus one space
+     std::string trimSpace(const std::string& str)
+    {
+        size_t firstSpace = str.find_first_not_of(' ');  //find first space
+        if (std::string::npos != firstSpace) { //if space loc is not the end of str
+            size_t lastSpace = str.find_last_not_of(' ');  //find last space
+            return str.substr(firstSpace, (lastSpace - firstSpace + 1)); //return a substr without the loc of the first and last space 
+        }
+        else {
+            return str;  //if the space is the end of str just return it 
+        }
+
+    }
+
+Then continue to check where is the next comma using the same logic and adjusting the locations. Assigning those substrings to the temporary variables. 
+At the end assign the temp values to the values of the constructor obj. 

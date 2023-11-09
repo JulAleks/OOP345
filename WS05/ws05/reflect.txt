@@ -1,0 +1,120 @@
+/*/////////////////////////////////////////////////////////////////////////
+                       OOP345 Workshop - #4 (PART 2-Reflection)
+Reflection
+File	reflect.txt
+Student Name: Julia Alekseev
+Student ID# :  051292134
+Email       :  jalekseev@myseneca.ca
+Section     :  NFF
+Date        :  Oct 15, 2023
+I have done all the coding by myself and only copied the code that my professor provided to complete my workshops and assignments.
+/////////////////////////////////////////////////////////////////////////*/
+
+ 
+This week's workshop covered various topics, including templates, functors (function objects), and lambda expressions. Templates, as discussed earlier, act as blueprints or guidelines for a program, allowing it to execute logic without the need to specify variable types. Templates enable code to adapt to various data types, eliminating the necessity to duplicate functions or logic for different data types. 
+In the collection module, we implemented dynamic memory allocation for an array of pointers of type T. Labeling it as type T allows it to be used as a template and store different types of pointers. Within the template logic, we reference the array by the template name, which, in my case, was 'arr,' to resize it based on the size variable and assign a new item using the += operator overload. This allowed us to use the template to add books and movies to the library, although they belong to different classes.
+        Collection<T>& operator+=(const T& item) {
+            //checking if its in the arr
+            bool found = false;
+            for (size_t i = 0u; i < c_size; i++) {
+                //type T has a member function called title() that returns the title of the item(std::string)
+                if (arr[i].title() == item.title()) {
+                    found = true;
+                }
+            }
+
+            if (!found) {
+
+                //maikng a temp with new size
+                T* t_arr = new T[c_size + 1];
+                for (size_t i = 0; i < c_size; i++) {
+                    t_arr[i] = arr[i];
+                }
+                t_arr[c_size] = item;
+
+                setEmpty();
+                arr = t_arr;
+                ++c_size;
+
+                // if an observer has been registered, this operator calls the observer function passing the current object(*this) and the new item as arguments.
+                if (observ) {
+                    observ(*this, item);
+                }
+            }
+            //if item is already in the collection, this function does nothing.
+            //return
+            return *this;
+        }
+
+Main: 	if (bookLine[0] != '#') {  //ines that start with "#" are considered comments and should be ignored
+						sdds::Book book(bookLine);//read one line at a time, and pass it to the Book constructor
+						library += book;  //store each book read into the collection "library" (use the += operator)
+						cnt++;  // Increment the count
+
+					}
+	if (movieLine[0] != '#') {  //ines that start with "#" are considered comments and should be ignored
+					if (cnt <= sizeof(movies) / sizeof(movies[0])) {
+						movies[cnt] = movieLine;
+						++cnt;
+					}
+				}
+In addition, we've had to use functors, which are callable objects that overload the operator(). Functors provide a way to encapsulate modular logic and create object functions that can be called without the need to return an object. They are used to implement callback functions and are a used to design a more flexible code. Functors are designed in a way that allows us to pass the address of a function, effectively making them callback functions. 
+Furthermore, in the main, we are using the fixSpelling functor. It is designed to work with book and/or movie objects, regardless of whether they are different types of objects. The callback function it invokes is determined by the instance of the spell checker passed to it. This enables us to maintain a consistent and adaptable flow. 
+Movie:
+        template <typename T>
+        void fixSpelling(T& spellChecker) {
+            spellChecker(m_title);
+            spellChecker(m_desc);
+        }
+Book: 
+       template <typename T>
+        void fixSpelling(T& spellChecker) {
+            spellChecker(b_desc);
+        }
+In the main we are passing different function instances that are being used and evaluated now based on the passed instance of the callback function:
+sdds::SpellChecker sp(argv[i]);
+				for (auto j = 0u; j < library.size(); ++j)
+					library[j].fixSpelling(sp);
+				sp.showStatistics(std::cout); 
+It does not care that that the library or the collection contains book or movies, it is being used the same, based on the needed instance of the logic:
+sdds::SpellChecker sp(argv[i]);
+				for (auto j = 0u; j < library.size(); ++j)
+					library[j].fixSpelling(sp);
+				sp.showStatistics(std::cout);
+
+				for (auto j = 0u; j < theCollection.size(); ++j)
+					theCollection[j].fixSpelling(sp);
+				sp.showStatistics(std::cout);
+
+In addition, we used lambda expressions, which might look like functors, but they have a different purpose. Lambdas are used for defining small blocks of logic that are encapsulated for use within a limited scope. Unlike functors, which are callable objects, lambdas are not designed for reusability in other modules. They are declared by specifying an auto type and defining their behavior using square brackets [] instead of the () operator.
+As well, we can pass the addresses of variables to lambdas, allowing them to access and modify those variables. Lambda expressions are useful when we need to make short, and specialized logic that isn't needed to be reused beyond the immediate code block.
+auto fixedPrice = [&usdToCadRate, &gbpToCadRate](sdds::Book& book) {
+		if (book.country() == "US") {
+			//if the book was published in US, multiply the price with "usdToCadRate",  and save the new price in the book object
+			book.setPrice(book.price() * usdToCadRate);
+		}
+		//if the book was published in UK between 1990 and 1999 (inclussive),
+		else if (book.country() == "UK" && book.year() >= 1990 && book.year() <= 1999) {
+			// multiply the price with "gbpToCadRate" and save the new price in the book object
+			book.setPrice(book.price() * gbpToCadRate);
+		}
+	};
+For example, we pass the book to the lambda expression that takes the address of the conversion rate and use it to calculate the conversion of the book price. 
+
+Moreover, used error handling techniques to ensure that the program exits gracefully instead of crashing. We used different types of exceptions based on the potential errors that might occur within the program.
+
+For instance, in the collection module using the operator[], a potential issue that can occur is the index going out of range. To handle this possibility, I utilized the throw std::out_of_range("Bad index [" + std::to_string(idx) + "]. Collection has [" + std::to_string(c_size) + "] items."). This specific exception is thrown when an invalid index is reached, ensuring that the program responds to this error gracefully.
+
+In the main, there are different types of error handling. In it, the program is allowed to exit with a specific exit code by calling an enum member representing a particular error condition. Additionally, I implemented a more general exception handling approach without associating it with any specific error, such as: catch (const std::exception& ex) {
+    std::cerr << "** EXCEPTION: " << ex.what() << std::endl;
+}
+
+In the spellchecker module and the constructor, a different type of error can happen when attempting to open a file. This is considered a runtime error, and, therefore, I used the throw std::runtime_error("Bad file name!") approach to throw this error when a file cannot be opened.
+
+If we were to change the approach by not using exceptions, we could use conditional statements (if-else) and a regular bool flag to control the execution of steps. Although it would make the code longer with the need for additional conditional steps.
+
+On the client side, we would need to pass the filename as an argument to the spellcheck function and then check the return value or status flag to determine whether the steps should be executed. This approach can work well although might be more complex for clients, as it will require additional conditional logic and handling errors explicitly on their end.
+
+In order not to duplicate that logic of loading data for movies and books, we can make a template that takes care of reading the file. This way, we can ensure that the file is properly read and processed, while allowing the template to be flexible based on the file's structure and the number of lines.
+
+Removing the default constructors in Movie and Book is not possible because we create new objects in the main function without immediately initializing them. These objects are placeholders and are later used to read data from a file or as temporary objects. By having the default constructors, we can ensure that their member variables are set to default values, preventing unwanted behavior and potential issues.
