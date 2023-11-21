@@ -1,0 +1,87 @@
+/*************** WS REFLECT ********************
+ Name: Julia Alekseev
+ Seneca Student ID: 051292134
+ Seneca email: jalekseev@myseneca.ca
+ Date of completion: 2023-11-18
+
+ I have done all the coding by myself and only copied the code that my professor
+ provided to complete my workshops and assignments.
+**************************************************************************************/
+
+In this week’s workshop covered quadratic complexity, where nested loops are used to iterate through profiles, resulting in multiple data comparisons. In my solution, I implemented this logic in the excludeSmart and excludeRaw functions. The outer loop iterates through all profiles, while the inner loop identifies and compares bad profiles to determine whether a profile is banned.
+
+Example: 
+  for (size_t i = 0; i < allProfiles.size(); ++i) { //looping through good
+            bool isBanned = false;
+
+            for (size_t j = 0; j < bannedProfiles.size() && !isBanned; ++j) { //looping through bad
+                //For each profile from the first parameter that is not banned,  Two profiles are considered same if they have same age and name.
+                      //same age                                                   //same first name
+                if ((allProfiles[i].m_age == bannedProfiles[j].m_age) && ((allProfiles[i].m_name.first_name == bannedProfiles[j].m_name.first_name) &&
+                    //same last name
+                    (allProfiles[i].m_name.last_name == bannedProfiles[j].m_name.last_name))) {
+                    isBanned = true;
+                }
+            }
+…….rest of code……}
+
+Once a good profile is found, the function allocates a temporary person using either a raw or a smart pointer. The next step involves validating the postal code to ensure it adheres to the Canadian format. If the validation passes, the person is added to the collection; otherwise, an exception is thrown.
+
+The main difference between the two functions is the memory management. Raw pointers, the traditional pointers, require manual memory management, requiring the use of delete statements. On the other hand, smart pointers, acting as objects, using automatic memory management, eliminating the need for explicit deallocation.
+
+The main advantage of smart pointer syntax, besides code readability and easier future maintenance is its ability to automatically handle memory, reducing the possibility of memory leaks. 
+
+Example raw: 
+…rest of code….
+if (!isBanned) {
+                // allocates dynamic memory of Profile typeand copies the profile.
+                Profile* t_person = new Profile(allProfiles[i].m_name, allProfiles[i].m_address, allProfiles[i].m_age);
+                bool ok = true;
+
+                //Your function then validates the Profile object (using validateAddress() you created above) and adds it to result.
+                try {
+                    t_person->validateAddress(); //checkign if address is good
+                }
+                catch (const std::string& err) {  //if not 
+                    ok = false;  //not good
+                    delete t_person; //delete person
+                    throw; //throw
+                }
+                if (ok) {  //if good add person
+                    result += t_person;
+                }
+                //delete the temp
+                delete t_person;
+            }
+
+
+VS Smart example: 
+…rest of code….
+if (!isBanned) {
+                // allocates dynamic memory of Profile typeand copies the profile.
+                unique_ptr<Profile> t_person(new Profile(allProfiles[i].m_name, allProfiles[i].m_address, allProfiles[i].m_age));
+
+                bool ok = true;
+
+                //Your function then validates the Profile object (using validateAddress() you created above) and adds it to result.
+                try {
+                    t_person->validateAddress(); //checkign if address is good
+                }
+                catch (const std::string& err) {  //if not 
+                    ok = false;  //not good
+                    throw; //throw
+                }
+                if (ok) {  //if good add person
+                    result += t_person;
+                }
+            
+            }
+
+The reason for the duplication of objects is in the way memory is being handled in both raw and smart pointers. In both cases, temporary objects were created using a constructor and then copied into the collection using += with the copy constructor. To improve the design, especially when using smart pointers, it could be better to directly allocate the object without creating a temporary one and then adding it to the collection. 
+
+Example: 
+std::unique_ptr<Profile> t_person = std::make_unique<Profile>(allProfiles[i].m_name, allProfiles[i].m_address, allProfiles[i].m_age);
+result += std::move(t_person); 
+
+like this we can reduce the object copies and move the ownership rather than creating another object. 
+While using a move syntax with smart pointers, would usually transfer the ownership, in the provided profile module there is move operator. After reviewing profile and DataBase modules, I have noticed the lack of explicit defined move operator. Therefore, the program uses the default copy constructor, ignoring the intended of the move semantics. Therefore, to fix the code to use the move semantics there would be a need to design an explicit move operator. 

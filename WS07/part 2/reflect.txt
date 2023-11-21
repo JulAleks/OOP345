@@ -1,0 +1,113 @@
+/*/////////////////////////////////////////////////////////////////////////
+                       OOP345 Workshop - #7 (Reflection)
+Reflection
+File	Reflection.txt
+Student Name: Julia Alekseev
+Student ID# :  051292134
+Email       :  jalekseev@myseneca.ca
+Section     :  NFF
+Date        :  2023-11-11
+I have done all the coding by myself and only copied the code that my
+professor provided to complete my workshops and assignments.
+/////////////////////////////////////////////////////////////////////////*/
+
+In Workshop 7, we covered several topics, one of which was uploading data from a file, a familiar task we did in a previous workshops. However, this time, we needed to store the data in a vector. In the one argument constructor used ifstream and a while loop to load the data of COVID cases. When the strings were broken down into tokens, I assigned them to a temporary vector and used push_back to add it at the end of the loop to the main vector containing COVID data. In addition, I added to throw an error in case the operation fails. 
+Example: 
+if (!fileName.empty()) {
+            std::ifstream fin(fileName); 
+            if (fin.fail()) {
+                throw AppErrors::CannotOpenFile; 
+            }
+            else {
+                std::string line;  
+                while (std::getline(fin, line)) {
+                    if (!line.empty()) {
+                        Covid temp; 
+                        int s_25 = 25, s_5 = 5;
+                        std::string t_line = trimSpace(line);
+
+                        temp.c_county = trimSpace(t_line.substr(0, s_25));
+                        temp.c_city = trimSpace(t_line.substr(s_25, s_25));
+                        temp.c_variant = trimSpace(t_line.substr(s_25 * 2, s_25));
+                        temp.c_year = std::stoi(trimSpace(t_line.substr(s_25 * 3, s_5)));
+                        temp.c_numCase = std::stoi(trimSpace(t_line.substr(s_25 * 3 + s_5, s_5)));
+                        temp.c_numDeath = std::stoi(trimSpace(t_line.substr(s_25 * 3 + 2 * s_5, s_5)));
+
+                       
+                        if (!temp.c_county.empty() && !temp.c_city.empty()) {
+                            corona.push_back(temp);
+                        }
+                    }
+                }
+            }
+            fin.close(); 
+        }
+        else {
+            throw AppErrors::BadFileName; 
+        }
+
+Furthermore, we covered the utilization of numeric and algorithm libraries to implement the desired logic without using manual loops. The numeric library offers template functions for performing mathematical equations. In the display function, I used the accumulate algorithm to iterate and sum up the total deaths and cases worldwide, as well as in a specific country. I specified the right and left iterators to start and end the loops of the corona vector, summing up the values stored in a struct pointer inside the corona vector.
+Example:
+int deathCounter = accumulate(corona.begin(), corona.end(), 0, [](const int& sum, const Covid& c) {
+            return sum + c.c_numDeath;
+            });
+
+In addition to the numeric library with the accumulate function, I incorporated multiple algorithms from the algorithm library. Following the accumulation of total cases, I used a temporary vector to filter the necessary lines for display based on a lambda function, which checks whether to display all cases or country specific ones. For filtering the results, I used the remove_copy_if algorithm, which iterated through the corona vector, assigning to the temporary vector only the data that satisfied the lambda condition. To present the data, I used the copy algorithm, copying the temporary corona vector to the ostream to display the values.
+        std::vector<Covid> temmp_corona;  
+        auto coutry_all = [country](const Covid& c) { return (country != "ALL" && c.c_county != country); };
+        std::remove_copy_if(corona.begin(), corona.end(), std::back_inserter(temmp_corona), coutry_all);
+        std::copy(temmp_corona.begin(), temmp_corona.end(), std::ostream_iterator<Covid>(std::cout, "\n"));
+While I found the accumulate and remove_copy_if algorithm functions beneficial, I recognize that, for the display function, opting for a manual loop might offer a more straightforward approach. Alternatively, incorporating the copy_if algorithm could provide a more concise solution compared to the lengthier route I chose, primarily due to the given assignment instructions.
+In the getListForDeaths function, the copy_if function serves a similar purpose to the previous logic. It filters data that satisfies a condition and directly copies it to the ostream for immediate output, rather than first filtering, copying to a temporary vector, and then displaying. In both cases, I used back_inserter to insert data into the vector, eliminating the need to manually manage vector resizing.
+  std::list<Covid> c_list;
+
+        std::copy_if(corona.begin(), corona.end(), std::back_inserter(c_list), [deaths](const Covid& c) {  
+            return c.c_numDeath >= deaths;
+            })
+In addition, I used the sorting algorithm in two functions. At first glance, it might seem that I have duplicated the logic, although that is not the case. In the 'getListForDeaths' function, we are sorting a list, whereas in the 'sort' function, we are sorting a vector. A vector is a contiguous memory, while a list is not. Therefore, they both employ different sorting algorithms to achieve the desired sorting.
+Example: 
+void CovidCollection::sort(const std::string& field)
+    {
+        
+        std::sort(corona.begin(), corona.end(), [field](const Covid& c1, const Covid& c2) {
+            
+            bool comp = true;
+        if (field == "country") {
+            if (c1.c_county == c2.c_county) {
+                if (c1.c_numDeath == c2.c_numDeath) {…..
+                    
+VS.
+        c_list.sort([deaths](const Covid& c1, const Covid& c2) {
+            bool comp = true;
+        if (c1.c_county == c2.c_county && c1.c_variant == c2.c_variant) {
+            if (c1.c_numDeath == c2.c_numDeath) {
+                comp = c1.c_year < c2.c_year;
+As well, I used the find_if algorithm, which iterated through the corona vector and returned the position of data that satisfied the condition. In our case, the condition was based on a comparison between a city in the specified country and the variant from the first parameter, ensuring it caused more deaths than the last parameter. If such information was found, the function would return true, indicating the presence of relevant data at a specific location. However, if the algorithm reached the end of the vector without finding a match, it would return false, signifying that the information was not found.
+
+Example: 
+   auto itr = std::find_if(corona.begin(), corona.end(), [variant, country, deaths](const Covid& c) {
+            return c.c_variant == variant && c.c_county == country && c.c_numDeath > deaths;
+         });
+
+        return itr != corona.end(); 
+
+The last algorithm I employed was for_each. This function operates similarly to a 'for each' loop, iterating through a container and executing the designated logic. In my case, it iterated through the container and modified the severity to either 'early,' 'mild,' or 'pandemic.'
+
+Example:
+std::for_each(corona.begin(), corona.end(), [](Covid& c) {
+            if (c.c_numDeath > 300) {
+                c.c_severty = "EPIDEMIC";
+            }
+            else if (c.c_numDeath < 50) {
+                c.c_severty = "EARLY";
+            }
+            else {
+                c.c_severty = "MILD";
+            }
+            });
+
+ 
+In terms of usefulness, manual loops are obviously inferior to algorithms in specific cases. Algorithms can enhance code readability, providing cleaner and more reusable code. Furthermore, the use of algorithms reduces the chance of errors by guaranteeing successful logic. However, in the current workshop, the use of algorithms felt forced and not always beneficial, especially considering the need to limit the use of a specific algorithm per function.
+
+Regarding the sorting function, the adjustment I could have made is to accept the string, then check if it corresponds to the available correct fields. If it does, proceed with the sorting, if not, throw an error indicating that the string is invalid or misspelled.
+
