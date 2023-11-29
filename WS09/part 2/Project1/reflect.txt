@@ -1,0 +1,36 @@
+/********************************** WS 09_02 - Reflect******************************************
+ Name: Julia Alekseev
+ Seneca Student ID: 051292134
+ Seneca email: jalekseev@myseneca.ca
+ Date of completion: 2023-11-25
+
+ I have done all the coding by myself and only copied the code that my professor
+ provided to complete my workshops and assignments.
+**************************************************************************************/
+
+The current workshop covered several topics like binary files and threads. Binary files are a way for the computer to write data to a file using the binary numbering system. It is an efficient way to encode large set of data and be able to compress it and write it to a file quickly. It the workshop we had to read and write a binary file, this can be accomplished by defining the use of binary in the ifsteram function:
+Example: 
+std::ifstream in(filename, std::ios::binary);
+in.read(reinterpret_cast<char*>(&total_items), 4);
+in.read(reinterpret_cast<char*>(data), total_items * 4);
+std::fstream out(target_file, std::ios::out | std::ios::binary);
+out.write(reinterpret_cast<const char*>(&total_items), 4);
+out.write(reinterpret_cast<const char*>(data), total_items * 4);
+Running the code on my computer took between 3-6 milliseconds. I was curious to see visually how much data and what it is in the files themselves. I investigated and found a c++ code that could output what the files contained. The script ran for more than 2 minutes outputting multiple hexadecimal sequences. It emphasized the benefit of binary files and their ability to read and write files quicky rather than using reading and writing to regular files which would much longer. 
+
+Experimenting with the chrono sleep function showed that the calculation increases because the threads pause for longer time during each iteration of the loop, causing delays. It was interesting to see the time difference as well between seeing it execute on my computer in compression to matrix which took significantly longer. 
+
+In addition, the workshop covered the bind function. Bind helps us create a kind of function wrapper, making an object we can call like a function. The we can pass specific values into it before using it. So, in this loop, we're using bind to set values in our function called computeAvgFactor. The values of &data[p_indices[i]], p_indices[i + 1] - p_indices[i], and total_items, stay the same, whereas  std::ref(averages[i]) will be changed in the future. It is a placeholder for a later usage. This way, we can customize our function for each turn in the loop
+
+Moreover, the workshop covered the usage of threads. Threads are individual sequences of data execution. Instead of one thread that deals with a large chunk of code we can break it down to several threads that each thread does its own work, making the program run faster. In the code the computation of the average and the variance were done on different threads giving the system an option to run it faster and efficient. 
+
+We broke the following to several threads:
+   num_threads = n_threads; 
+    averages = new double[num_threads] {};
+    variances = new double[num_threads] {};
+    p_indices = new int[num_threads + 1] {};
+
+This allows the system to run different threads while computing the average and variance for when we are doing the calculation: 
+(int i = 0; i < num_threads; i++) {
+        f_threads.push_back(std::thread(std::bind(&computeAvgFactor, &data[p_indices[i]], p_indices[i + 1] - p_indices[i], total_items, std::ref(averages[i]))));
+    }
