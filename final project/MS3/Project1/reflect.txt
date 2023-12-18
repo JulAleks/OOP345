@@ -1,0 +1,21 @@
+/*************** MS 3 - Reflection - reflect.txt ************************
+ Name: Julia Alekseev
+ Seneca Student ID: 051292134
+ Seneca email: jalekseev@myseneca.ca
+ Date of completion: 2023-11-21
+
+ I confirm that I am the only author of this file
+ and the content was created entirely by me.
+*************************************************************************/
+
+
+This semester's project turned out to be quite intriguing. Initially, when I reviewed the output, I thought it resembled an Ikea ordering system, and to some extent, it did. However, upon diving into the instructions, I noticed that while the sentences made sense, the coding logic was somewhat unclear. This resulted in logical 'errors' rather than the typical syntax issues, making it challenging to achieve the desired output. Consequently, I found myself spending a significant amount of time fixing sections that didn't necessarily require attention, diverting focus from other crucial areas. The most challenging aspect was grasping the main idea behind the instructions, both in the milestone and the earlier workshops.
+The first milestone (MS1) was straightforward, resembling previous workshops that involved extracting functions to get tokens, setting delimiters, and trimming spaces. I didn't encounter any major issues, as it heavily drew from the concepts covered in workshop 5. Similarly, the station module involved extracting tokens and pushing them to a vector for later assignment to the appropriate variables, resulting in a smooth completion of this milestone.
+
+Moving on to MS2, it seemed relatively straightforward, and I initially believed there were no issues, as my output matched the expectations. Most of my time was dedicated to the CustomerOrder function, ensuring that the line was read and broken down correctly, and that items and orders were filled accurately. However, it wasn't until MS3 that the bulk of the challenges surfaced. Understanding how the stations should function and interpreting the output proved to be difficult. This led me to spend a significant amount of time fixing my extractToken function, as well as addressing issues in CustomerOrder and LineManager. With the help of my professor, I later realized that the errors were simpler and traced back to basic condition checks in MS2. I struggled to fully comprehend the logic behind the instructions for fillItem, isItemFilled, and isOrderFilled, which affected the output of my logic.
+
+Despite using several STL algorithms as per the instructions and previous workshops, I must admit that I'm not entirely comfortable using them yet. I find myself leaning towards manual loops, possibly because it gives me a sense of better control over conditional looping. It's an aspect I recognize I need to explore further, practice, and become comfortable enough to use based on the project's requirements.
+
+One aspect I particularly enjoyed was working with vectors instead of just arrays. It felt like having a library bookshelf, where I could effortlessly pull or add the first or last item. This significantly eased processes like extracting tokens, which I had to use frequently. Additionally, using deque enhanced the overall efficiency of the project.
+
+Moreover, the great support from my professor played a crucial role in completing the project and making this semester a positive experience. Despite the challenges, I gained valuable insights. The project forced me to use both familiar and new tools and concepts, contributing to a deeper understanding of them. In the words of Polly Esther from the Samurai Pizza Cats, "I could work here." It's that sense of fitting in and getting the job done, despite the obstacles encountered along the way.
